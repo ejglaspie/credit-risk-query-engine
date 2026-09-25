@@ -246,15 +246,18 @@ ORDER BY avg_provision_coverage_ratio DESC;
 
 sql_5 = """
 SELECT
-    l.loan_account_number,
+    l.borrower_id,
     l.borrower_name,
-    s.sector_name,
-    ROUND(l.total_outstanding / 1000000.0, 2) AS total_outstanding_mn,
-    l.asset_classification
+    COUNT(DISTINCT l.loan_account_number) AS loan_count,
+    GROUP_CONCAT(DISTINCT s.sector_name) AS sectors,
+    ROUND(SUM(l.total_outstanding) / 1000000.0, 2) AS total_outstanding_mn
 FROM loan_master AS l
 JOIN sector_master AS s
     ON l.sector_code = s.sector_code
-ORDER BY l.total_outstanding DESC
+GROUP BY
+    l.borrower_id,
+    l.borrower_name
+ORDER BY total_outstanding_mn DESC
 LIMIT 10;
 """
 
@@ -351,7 +354,7 @@ verified_query_library = {
     },
 
     'VQ5': {
-        'description': 'Top 10 largest loan exposures by outstanding amount at the borrower level',
+        'description': 'Top 10 borrower exposures by total outstanding amount',
         'sql': sql_5
     },
 
